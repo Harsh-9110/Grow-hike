@@ -1,0 +1,27 @@
+{
+  "recorded_at": "2026-10-20T00:24:32.654693+00:00",
+  "python": "3.12.14",
+  "node": "v24.19.0",
+  "passed": [
+    "15 accounting/risk unittest cases",
+    "exact decimal frontend display checks",
+    "ESLint --max-warnings=0",
+    "strict TypeScript and Vite production build",
+    "Python and JavaScript syntax compilation",
+    "YAML and JSON parse checks"
+  ],
+  "not_executed": [
+    "Docker Compose startup",
+    "full pytest suite",
+    "ruff",
+    "PostgreSQL concurrency and immutability tests",
+    "browser/console and responsive visual tests",
+    "k6 measurements",
+    "live Google/Kite/LLM/provider integration checks",
+    "PyTorch training",
+    "public deployment"
+  ],
+  "optional_not_implemented": [
+    "CAS PDF import"
+  ]
+}

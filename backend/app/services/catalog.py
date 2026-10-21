@@ -1,0 +1,25 @@
+"""A deliberately small, explicit catalogue. Extend here without changing trading code."""
+CATALOG = [
+    ("RELIANCE.NS", "Reliance Industries", "Energy", "NSE", "INR", None, "RELIANCE:NSE", "1460"),
+    ("TCS.NS", "Tata Consultancy Services", "Technology", "NSE", "INR", None, "TCS:NSE", "3200"),
+    ("INFY.NS", "Infosys", "Technology", "NSE", "INR", None, "INFY:NSE", "1580"),
+    ("HDFCBANK.NS", "HDFC Bank", "Financials", "NSE", "INR", None, "HDFCBANK:NSE", "1760"),
+    ("ICICIBANK.NS", "ICICI Bank", "Financials", "NSE", "INR", None, "ICICIBANK:NSE", "1240"),
+    ("ITC.NS", "ITC", "Consumer Staples", "NSE", "INR", None, "ITC:NSE", "420"),
+    ("LT.NS", "Larsen & Toubro", "Industrials", "NSE", "INR", None, "LT:NSE", "3600"),
+    ("BHARTIARTL.NS", "Bharti Airtel", "Communication", "NSE", "INR", None, "BHARTIARTL:NSE", "1800"),
+    ("500325.BO", "Reliance Industries · BSE", "Energy", "BSE", "INR", "RELIANCE.BSE", None, "1460"),
+    ("532540.BO", "Tata Consultancy Services · BSE", "Technology", "BSE", "INR", "TCS.BSE", None, "3200"),
+    ("AAPL", "Apple", "Technology", "NASDAQ", "USD", "AAPL", "AAPL", "225"),
+    ("MSFT", "Microsoft", "Technology", "NASDAQ", "USD", "MSFT", "MSFT", "430"),
+    ("NVDA", "NVIDIA", "Technology", "NASDAQ", "USD", "NVDA", "NVDA", "180"),
+    ("GOOGL", "Alphabet", "Communication", "NASDAQ", "USD", "GOOGL", "GOOGL", "200"),
+    ("AMZN", "Amazon", "Consumer Discretionary", "NASDAQ", "USD", "AMZN", "AMZN", "220"),
+    ("TSLA", "Tesla", "Consumer Discretionary", "NASDAQ", "USD", "TSLA", "TSLA", "300"),
+    ("JPM", "JPMorgan Chase", "Financials", "NYSE", "USD", "JPM", "JPM", "290"),
+    ("KO", "Coca-Cola", "Consumer Staples", "NYSE", "USD", "KO", "KO", "70"),
+    ("^NSEI", "Nifty 50", "Index", "NSE", "INR", None, None, "25000"),
+    ("^GSPC", "S&P 500", "Index", "NYSE", "USD", None, "SPX", "6000"),
+    ("INR=X", "USD / INR", "FX", "FX", "INR", None, "USD/INR", "84"),
+]
+DEMO_PRICES = {r[0]: r[-1] for r in CATALOG}

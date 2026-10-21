@@ -1,0 +1,52 @@
+name: Verify GROW HIKE
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm run lint
+      - run: npm run build
+  backend-and-load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up --build -d --wait
+      - run: docker compose --profile test run --rm tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix e2e
+      - run: cd e2e && npx playwright install --with-deps chromium
+      - run: cd e2e && npm test
+      - run: mkdir -p load/results
+      - run: docker compose --profile load run --rm k6
+      - run: python3 load/summarize.py load/results/summary.json
+      - name: Save measured results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-results
+          path: |
+            load/results/summary.json
+            README.md
+            docs/screenshots/
+            e2e/artifacts/demo.webm
+      - name: Save service logs
+        if: failure()
+        run: docker compose logs --no-color --tail=100
+      - name: Stop test services
+        if: always()
+        run: docker compose down

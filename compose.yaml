@@ -1,0 +1,112 @@
+name: grow-hike
+x-backend: &backend
+  # Only the backend service builds this image. Other Python services reuse it.
+  image: grow-hike-python:local
+  pull_policy: never
+  environment: &env
+    DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://grow:grow_dev_only@db:5432/grow}
+    REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    ENVIRONMENT: ${ENVIRONMENT:-development}
+    DEMO_MODE: ${DEMO_MODE:-true}
+    DEMO_EMAIL: ${DEMO_EMAIL:-demo@growhike.dev}
+    DEMO_PASSWORD: ${DEMO_PASSWORD:-GrowHike-Demo-2026!}
+    JWT_SECRET: ${JWT_SECRET:-local-only-change-before-deployment-32-bytes-minimum}
+    ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+    COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
+    QUOTE_TTL: ${QUOTE_TTL:-60}
+    STALE_SECONDS: ${STALE_SECONDS:-604800}
+    YAHOO_PER_MINUTE: ${YAHOO_PER_MINUTE:-30}
+    YAHOO_PER_DAY: ${YAHOO_PER_DAY:-2000}
+    ALPHA_VANTAGE_KEY: ${ALPHA_VANTAGE_KEY:-}
+    TWELVE_DATA_KEY: ${TWELVE_DATA_KEY:-}
+    GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    KITE_API_KEY: ${KITE_API_KEY:-}
+    KITE_API_SECRET: ${KITE_API_SECRET:-}
+    LLM_API_KEY: ${LLM_API_KEY:-}
+    LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+    LLM_MODEL: ${LLM_MODEL:-gpt-4.1-mini}
+    EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-grow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-grow_dev_only}
+      POSTGRES_DB: ${POSTGRES_DB:-grow}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    ports: ["127.0.0.1:5432:5432"]
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, 'yes', --maxmemory, 256mb, --maxmemory-policy, noeviction]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    ports: ["127.0.0.1:6379:6379"]
+  migrate:
+    <<: *backend
+    command: [sh, -c, 'alembic upgrade head && python -m app.seed']
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+  backend:
+    <<: *backend
+    build:
+      context: ./backend
+      args:
+        INSTALL_ML: ${INSTALL_ML:-false}
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:8000/ready", timeout=4)']
+      interval: 10s
+      timeout: 6s
+      retries: 15
+      start_period: 10s
+  worker:
+    <<: *backend
+    command: [python, -m, app.worker]
+    depends_on:
+      backend: {condition: service_healthy}
+  frontend:
+    build: ./frontend
+    ports: ["127.0.0.1:5173:5173"]
+    depends_on:
+      backend: {condition: service_healthy}
+  tests:
+    <<: *backend
+    profiles: [test]
+    environment:
+      <<: *env
+      DATABASE_URL: postgresql+psycopg://grow:grow_dev_only@db:5432/grow_test
+      TEST_DATABASE_URL: postgresql+psycopg://grow:grow_dev_only@db:5432/grow_test
+    command: [sh, -c, 'python -m app.testing && alembic upgrade head && pytest && ruff check .']
+    depends_on:
+      backend: {condition: service_healthy}
+  k6:
+    image: grafana/k6:0.57.0
+    profiles: [load]
+    user: "0:0"
+    volumes: ["./load:/scripts:ro", "./load/results:/results"]
+    environment:
+      BASE_URL: http://backend:8000
+      DEMO_EMAIL: ${DEMO_EMAIL:-demo@growhike.dev}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-GrowHike-Demo-2026!}
+    command: [run, /scripts/k6.js]
+    depends_on:
+      backend: {condition: service_healthy}
+
+volumes:
+  pgdata:
+  redisdata:

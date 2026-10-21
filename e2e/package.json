@@ -1,0 +1,1 @@
+{"name":"grow-hike-browser-checks","private":true,"type":"module","scripts":{"test":"node smoke.mjs"},"devDependencies":{"playwright":"1.62.1"}}

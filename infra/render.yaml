@@ -1,0 +1,45 @@
+# Review resources in your Render dashboard before creating them.
+# The same environment group is shared by the API and its worker.
+envVarGroups:
+  - name: grow-hike-settings
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEMO_MODE
+        value: 'false'
+      - key: COOKIE_SECURE
+        value: 'true'
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: ALPHA_VANTAGE_KEY
+        sync: false
+      - key: TWELVE_DATA_KEY
+        sync: false
+services:
+  - type: web
+    name: grow-hike-api
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: ./backend/Dockerfile.deploy
+    dockerCommand: sh /app/start_api.sh
+    healthCheckPath: /ready
+    envVars:
+      - fromGroup: grow-hike-settings
+  - type: worker
+    name: grow-hike-worker
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: ./backend/Dockerfile.deploy
+    dockerCommand: python -m app.worker
+    envVars:
+      - fromGroup: grow-hike-settings
