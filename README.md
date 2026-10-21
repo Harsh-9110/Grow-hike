@@ -222,8 +222,8 @@ feat: build Grow Hike paper trading, portfolio imports and analytics platform
 ```
 
 ## Captured browser media
-[Demo.mp4
-](https://github.com/Harsh-9110/Grow-hike/blob/main/Demo.mp4)
+Project Demo.mp4
+https://github.com/Harsh-9110/Grow-hike/blob/main/Project%20Demo.mp4
 <!-- BROWSER_MEDIA_START -->
 Not captured in the authoring environment. Running the browser smoke script adds actual screenshot links here after a successful run and records a demo video.
 <!-- BROWSER_MEDIA_END -->
